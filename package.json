@@ -22,13 +22,15 @@
     "copy-license": "cpy LICENSE dist",
     "clean-dist": "rimraf dist",
     "clean-target": "rimraf target",
-    "install-urcap": "install-urcap 'target/advanced-rtde*.urcapx'",
-    "delete-urcap": "delete-urcap urcaps-r-us advanced-rtde"
+    "install-urcap": "install-urcap 'target/advanced-rtde*.urcapx' '../manifest-spec-19.10.24.json'",
+    "delete-urcap": "delete-urcap urcaps-r-us advanced-rtde",
+    "validate-manifest": "validate-manifest 'manifest.yaml' '../manifest-spec-19.10.24.json'"
   },
   "private": true,
   "devDependencies": {
-    "@universal-robots/urcap-utils": "1.0.5",
+    "@universal-robots/urcap-utils": "2.1.2",
     "rimraf": "3.0.2",
-    "cpy-cli": "3.1.1"
+    "cpy-cli": "3.1.1",
+    "ncp": "2.0.0"
   }
 }

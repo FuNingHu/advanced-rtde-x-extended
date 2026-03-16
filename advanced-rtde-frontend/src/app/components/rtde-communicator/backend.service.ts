@@ -6,7 +6,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class BackendService {
-  private socket: WebSocket;
+  private socket: WebSocket | null = null;
   private dataSubject: BehaviorSubject<any> = new BehaviorSubject(null);
   private randomNumberSubject: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(null);
   
@@ -14,22 +14,59 @@ export class BackendService {
   public readonly randomNumber$: Observable<number | null> = this.randomNumberSubject.asObservable();
   
   private protocol: string = 'ws://';
-
+  private isConnecting: boolean = false;
 
   constructor(private http: HttpClient) {}
 
   connect(url: string): void {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
-      this.socket = new WebSocket(this.protocol + url + '/ws');
-      this.socket.onmessage = (event) => this.dataSubject.next(JSON.parse(event.data));
-      this.socket.onopen = () => console.log('WebSocket connection opened');
-      this.socket.onclose = () => console.log('WebSocket connection closed');
+    if (this.isConnecting) {
+      console.log('Already connecting...');
+      return;
     }
+
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log('WebSocket already connected');
+      return;
+    }
+
+    this.isConnecting = true;
+    const wsUrl = this.protocol + url + '/ws';
+    console.log('Connecting to WebSocket:', wsUrl);
+
+    this.socket = new WebSocket(wsUrl);
+    
+    this.socket.onopen = () => {
+      console.log('WebSocket connection opened successfully');
+      this.isConnecting = false;
+    };
+
+    this.socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Received data from WebSocket:', data);
+        this.dataSubject.next(data);
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    this.socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      this.isConnecting = false;
+    };
+
+    this.socket.onclose = (event) => {
+      console.log('WebSocket connection closed:', event.code, event.reason);
+      this.isConnecting = false;
+      this.socket = null;
+    };
   }
 
   disconnect(): void {
     if (this.socket) {
+      console.log('Disconnecting WebSocket');
       this.socket.close();
+      this.socket = null;
       this.dataSubject.next(null);
     }
   }

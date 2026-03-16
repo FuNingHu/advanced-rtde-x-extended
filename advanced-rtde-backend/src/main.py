@@ -46,14 +46,28 @@ class ConnectionManager:
         self.active_connections.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
+        try:
+            await websocket.send_text(message)
+        except Exception as e:
+            print(f"Error sending personal message: {e}")
+            self.disconnect(websocket)
 
     async def broadcast(self, message: str):
+        disconnected = []
         for connection in self.active_connections:
-            await connection.send_text(message)
+            try:
+                await connection.send_text(message)
+            except Exception as e:
+                print(f"Error broadcasting to connection, marking for removal: {e}")
+                disconnected.append(connection)
+        
+        # Remove disconnected connections
+        for connection in disconnected:
+            self.disconnect(connection)
 
 
 manager = ConnectionManager()
@@ -69,23 +83,52 @@ def create_message(data):
         'safety_status': data.safety_status,
         'actual_digital_input_bits': data.actual_digital_input_bits,
         'actual_digital_output_bits': data.actual_digital_output_bits,
+        'tool_analog_input0': data.tool_analog_input0,
+        'tool_analog_input1': data.tool_analog_input1,
     })
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, rtde_connect: RTDEConnect = Depends(get_rtde_connection)):
     await manager.connect(websocket)
+    print(f"WebSocket client connected. Total connections: {len(manager.active_connections)}")
+    
+    # Send initial test message
+    try:
+        test_data = rtde_connect.receive()
+        if test_data:
+            test_message = create_message(test_data)
+            await websocket.send_text(test_message)
+            print(f"Sent initial test message to client")
+        else:
+            print("Warning: Could not get initial test data from RTDE")
+    except Exception as e:
+        print(f"Error sending initial test message: {e}")
+    
+    message_count = 0
     try:
         while True:
-            data = rtde_connect.receive()
-            if data:
-                message = create_message(data)
-                await manager.broadcast(message)
-            await asyncio.sleep(1 / rtde_connect.frequency)  # Can adjust streaming frequency to the frontend here.
+            try:
+                data = rtde_connect.receive()
+                if data:
+                    message = create_message(data)
+                    await manager.broadcast(message)
+                    message_count += 1
+                    if message_count % 50 == 0:  # Log every 50 messages
+                        print(f"Sent {message_count} messages to {len(manager.active_connections)} clients")
+                else:
+                    print("Warning: No data received from RTDE")
+                await asyncio.sleep(1 / rtde_connect.frequency)
+            except Exception as receive_error:
+                print(f"Error receiving data: {receive_error}")
+                # Continue loop to wait for reconnection
+                await asyncio.sleep(1.0)
     except WebSocketDisconnect:
+        print(f"WebSocket client disconnected after {message_count} messages")
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"WebSocket error: {e}")
+        manager.disconnect(websocket)
 
 
 @app.get("/random-number")

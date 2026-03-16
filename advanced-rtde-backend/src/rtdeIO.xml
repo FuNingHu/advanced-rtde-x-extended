@@ -7,6 +7,8 @@
 		<field name="output_int_register_0" type="INT32"/>
 		<field name="runtime_state" type="UINT32"/>
 		<field name="safety_status" type="INT32"/>
+		<field name="tool_analog_input0" type="DOUBLE"/>
+		<field name="tool_analog_input1" type="DOUBLE"/>
 		<field name="actual_digital_input_bits" type="UINT64"/>
 		<field name="actual_digital_output_bits" type="UINT64"/>
 	</recipe>

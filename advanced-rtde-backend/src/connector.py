@@ -43,7 +43,7 @@ class RTDEConnect:
     _inputlist = RTDE_inputs
     _outputlist = RTDE_outputs
 
-    def __init__(self, robot_ip, filename, frequency=125):
+    def __init__(self, robot_ip, filename, frequency=20):
         self.robotIP = robot_ip
         self.port = 30004
         self.con = rtde.RTDE(self.robotIP, self.port)
@@ -72,13 +72,13 @@ class RTDEConnect:
     def connect(self):
         self.con.connect()
         self.controlVersion = self.con.get_controller_version()
-        if self.controlVersion[0] not in [5, 6]:
+        if self.controlVersion[0] != 10:
             print(f'Control version is: {self.controlVersion}')
-            print("Robot connected is not an E-series. Exiting...")
+            print("Robot connected is not an PolyScope X. Exiting...")
             sys.exit()
-        if self.controlVersion[0] == 5 and self.controlVersion[1] < 10:
-            print("Current Polyscope software is below 5.10. Please update robot and run again. Exiting...")
-            sys.exit()
+        # if self.controlVersion[0] == 10 and self.controlVersion[1] < 10:
+        #     print("Current Polyscope software is below 5.10. Please update robot and run again. Exiting...")
+        #     sys.exit()
         x = rtde_config.Recipe
         tree = ET.parse(self.config)
         root = tree.getroot()

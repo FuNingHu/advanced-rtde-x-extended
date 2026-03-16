@@ -1,17 +1,19 @@
 import { TranslateService } from '@ngx-translate/core';
 import { first } from 'rxjs/operators';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Input, OnChanges, OnInit, OnDestroy, SimpleChanges } from '@angular/core';
 import { ApplicationPresenterAPI, ApplicationPresenter, RobotSettings } from '@universal-robots/contribution-api';
 import { RtdeCommunicatorNode } from './rtde-communicator.node';
 import { URCAP_ID, VENDOR_ID } from 'src/generated/contribution-constants';
 import { BackendService } from './backend.service';
+import { Subscription } from 'rxjs';
 
 @Component({
     templateUrl: './rtde-communicator.component.html',
     styleUrls: ['./rtde-communicator.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.Default,
+    standalone: false,
 })
-export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChanges {
+export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChanges, OnInit, OnDestroy {
     // applicationAPI is optional
     @Input() applicationAPI: ApplicationPresenterAPI;
     // robotSettings is optional
@@ -19,8 +21,13 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
     // applicationNode is required
     private _applicationNode: RtdeCommunicatorNode;
     private beService: BackendService = inject(BackendService);
-    readonly data$ = this.beService.data$;
-    readonly randomNumber$ = this.beService.randomNumber$;
+    
+    // Store data directly instead of using async pipe
+    robotData: any = null;
+    randomNumber: number | null = null;
+    
+    private dataSubscription?: Subscription;
+    private randomNumberSubscription?: Subscription;
 
     private backendWebsocketUrl: string;
     private backendHttpUrl: string;
@@ -55,13 +62,43 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
       this.saveNode();
     }
 
-    ngOnChanges(changes: SimpleChanges): void {
-        if (changes?.robotSettings) {
-            if (changes.applicationAPI?.currentValue && changes.applicationAPI.firstChange) {
-                this.backendWebsocketUrl = this.applicationAPI.getContainerContributionURL(VENDOR_ID, URCAP_ID, 'advanced-rtde-backend', 'websocket-api');
-                this.backendHttpUrl = this.applicationAPI.getContainerContributionURL(VENDOR_ID, URCAP_ID, 'advanced-rtde-backend', 'rest-api');
-            }
+    ngOnInit(): void {
+        // Subscribe to data stream
+        this.dataSubscription = this.beService.data$.subscribe(data => {
+            this.robotData = data;
+            console.log('Data updated:', data);
+            this.cd.detectChanges();
+        });
 
+        // Subscribe to random number stream
+        this.randomNumberSubscription = this.beService.randomNumber$.subscribe(num => {
+            this.randomNumber = num;
+            this.cd.detectChanges();
+        });
+    }
+
+    ngOnDestroy(): void {
+        // Clean up subscriptions
+        if (this.dataSubscription) {
+            this.dataSubscription.unsubscribe();
+        }
+        if (this.randomNumberSubscription) {
+            this.randomNumberSubscription.unsubscribe();
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        // Initialize backend URLs when applicationAPI becomes available
+        if (changes?.applicationAPI?.currentValue && changes.applicationAPI.firstChange) {
+            this.backendWebsocketUrl = this.applicationAPI.getContainerContributionURL(VENDOR_ID, URCAP_ID, 'advanced-rtde-backend', 'websocket-api');
+            this.backendHttpUrl = this.applicationAPI.getContainerContributionURL(VENDOR_ID, URCAP_ID, 'advanced-rtde-backend', 'rest-api');
+            console.log('Backend URLs initialized:', {
+                websocket: this.backendWebsocketUrl,
+                http: this.backendHttpUrl
+            });
+        }
+
+        if (changes?.robotSettings) {
             if (!changes?.robotSettings?.currentValue) {
                 return;
             }
@@ -88,18 +125,26 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
     }
 
     startMonitoring(): void {
+        console.log('Starting monitoring with URL:', this.backendWebsocketUrl);
+        if (!this.backendWebsocketUrl) {
+            console.error('Backend WebSocket URL is not initialized!');
+            return;
+        }
         this.isMonitoring = true;
         this.beService.connect(this.backendWebsocketUrl);
-      }
+        this.cd.detectChanges();
+    }
     
-      stopMonitoring(): void {
+    stopMonitoring(): void {
+        console.log('Stopping monitoring');
         this.isMonitoring = false;
         this.beService.disconnect();
-      }
+        this.cd.detectChanges();
+    }
 
-      getRandomNumber(): void {
+    getRandomNumber(): void {
         this.beService.fetchRandomNumber(this.backendHttpUrl);
-      }
+    }
 
     // call saveNode to save node parameters
     saveNode() {
@@ -107,7 +152,7 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
         this.applicationAPI.applicationNodeService.updateNode(this.applicationNode);
     }
 
-    selectionChange($event: string){
+    selectionChange($event){
         this.applicationNode.digitalOutput = this.outputs.indexOf($event);
         // Uncomment this to have the slider selection persist.
         // NOTE: Saving the application node will STOP any running programs.

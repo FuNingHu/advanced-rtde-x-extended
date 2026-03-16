@@ -2,27 +2,45 @@
     <div class="component">
         <div class="section">
             <h1>Robot State Monitor</h1>
-            @if (data$ | async; as data) {
-                <h3>Runtime State: {{ data.runtime_state }}</h3>
-                <h3>Safety Status: {{ data.safety_status }}</h3>
-                <div>
-                    <h3>Actual TCP Pose:</h3>
-                    <ul>
-                        <li>X: {{ data.actual_TCP_pose[0] | number:'1.4-4' }}</li>
-                        <li>Y: {{ data.actual_TCP_pose[1] | number:'1.4-4' }}</li>
-                        <li>Z: {{ data.actual_TCP_pose[2] | number:'1.4-4' }}</li>
-                        <li>RX: {{ data.actual_TCP_pose[3] | number:'1.4-4' }}</li>
-                        <li>RY: {{ data.actual_TCP_pose[4] | number:'1.4-4' }}</li>
-                        <li>RZ: {{ data.actual_TCP_pose[5] | number:'1.4-4' }}</li>
-                    </ul>
-                </div>
+            
+            <div style="margin-bottom: 20px;">
+                <ur-button (handleClick)="startMonitoring()" [disabled]="isMonitoring">Start Monitoring</ur-button>
+                <ur-button (handleClick)="stopMonitoring()" [disabled]="!isMonitoring">Stop Monitoring</ur-button>
+                <ur-button (handleClick)="getRandomNumber()">Get Random number</ur-button>
+            </div>
+
+            @if (isMonitoring) {
+                @if (robotData) {
+                    <h3>Runtime State: {{ robotData.runtime_state }}</h3>
+                    <h3>Safety Status: {{ robotData.safety_status }}</h3>
+                    <div>
+                        <h3>Actual TCP Pose:</h3>
+                        <ul>
+                            <li>X: {{ robotData.actual_TCP_pose[0] | number:'1.4-4' }}</li>
+                            <li>Y: {{ robotData.actual_TCP_pose[1] | number:'1.4-4' }}</li>
+                            <li>Z: {{ robotData.actual_TCP_pose[2] | number:'1.4-4' }}</li>
+                            <li>RX: {{ robotData.actual_TCP_pose[3] | number:'1.4-4' }}</li>
+                            <li>RY: {{ robotData.actual_TCP_pose[4] | number:'1.4-4' }}</li>
+                            <li>RZ: {{ robotData.actual_TCP_pose[5] | number:'1.4-4' }}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Tool Analog Inputs:</h3>
+                        <ul>
+                            <li>AI0: {{ robotData.tool_analog_input0 | number:'1.3-3' }}</li>
+                            <li>AI1: {{ robotData.tool_analog_input1 | number:'1.3-3' }}</li>
+                        </ul>
+                    </div>
+                } @else {
+                    <p style="color: #FFA500; margin: 20px 0;">⏳ Connecting to RTDE and waiting for data...</p>
+                }
+            } @else {
+                <p style="color: #666; margin: 20px 0;">📊 Click "Start Monitoring" to view real-time robot data</p>
             }
-            @if (randomNumber$ | async; as num) {
-                <p><strong>Random Number:</strong> {{ num }}</p>
+            
+            @if (randomNumber !== null) {
+                <p><strong>Random Number:</strong> {{ randomNumber }}</p>
             }
-            <ur-button (handleClick)="startMonitoring()" [disabled]="isMonitoring">Start Monitoring</ur-button>
-            <ur-button (handleClick)="stopMonitoring()" [disabled]="!isMonitoring">Stop Monitoring</ur-button>
-            <ur-button (handleClick)="getRandomNumber()">Get Random number</ur-button>
         </div>
         <div>
             <h2>Digital Output Changer</h2>
