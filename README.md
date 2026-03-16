@@ -2,7 +2,7 @@
 
 A comprehensive URCap for real-time robot data monitoring and control using RTDE (Real-Time Data Exchange) protocol with WebSocket streaming.
 
-## 🎯 Features
+## Features
 
 ### Real-Time Data Monitoring
 - **TCP Pose**: X, Y, Z, RX, RY, RZ coordinates
@@ -17,13 +17,13 @@ A comprehensive URCap for real-time robot data monitoring and control using RTDE
 - **Docker Container**: Isolated backend service with RTDE connection
 - **Automatic Reconnection**: Robust error handling and connection recovery
 
-## 📋 Requirements
+##  Requirements
 
 - **SDK Version**: v0.20.19
 - **PolyScope X**: Tested on v10.13
 - **Robot Controller**: UR with RTDE support
 
-## 🚀 Installation
+##  Installation
 
 ### 1. Install Dependencies
 
@@ -56,7 +56,7 @@ npm run install-urcap-port 45000
 
 Or manually install the generated `.urcapx` file from `target/` folder through PolyScope X interface.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 advanced-rtde/
@@ -83,7 +83,7 @@ advanced-rtde/
 └── manifest.yaml                   # URCap metadata
 ```
 
-## 🔧 Usage
+##  Usage
 
 ### Starting Data Monitor
 
@@ -105,7 +105,7 @@ advanced-rtde/
 
 Click **"Stop Monitoring"** to disconnect the WebSocket and stop data streaming.
 
-## 🛠️ Development
+##  Development
 
 ### Backend Development
 
@@ -146,7 +146,7 @@ Edit `advanced-rtde-backend/src/rtdeIO.xml` to add/remove RTDE signals:
 </recipe>
 ```
 
-## 📊 Key Components
+##  Key Components
 
 ### Backend (Python)
 
@@ -172,7 +172,7 @@ Edit `advanced-rtde-backend/src/rtdeIO.xml` to add/remove RTDE signals:
 - Error handling and reconnection logic
 - Observable streams for data distribution
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### WebSocket Connection Issues
 
@@ -206,7 +206,7 @@ npm install
 npm run build
 ```
 
-## 📝 Version History
+##  Version History
 
 ### v1.0.0 (Current)
 - ✅ SDK v0.20.19 support
@@ -217,21 +217,21 @@ npm run build
 - ✅ Manual change detection for reliable data updates
 - ✅ Tested on PolyScope X v10.13
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
+##  License
 
 Apache-2.0
 
-## 🔗 Links
+##  Links
 
 - [PolyScope X SDK Documentation](https://docs.universal-robots.com/PolyScopeX_SDK_Documentation/)
 - [RTDE Guide](https://www.universal-robots.com/articles/ur/interface-communication/real-time-data-exchange-rtde-guide/)
 - [URCap Development](https://www.universal-robots.com/plus/software-platform/)
 
-## 📧 Contact
+##  Contact
 
 For issues and questions, please open an issue on GitHub.
 
