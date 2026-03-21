@@ -1,13 +1,230 @@
 @import '../../../styles.scss';
 
-.component {
-  .section {
-    padding: 0.5rem 0.5rem 1rem;
+.rtde-container {
+  display: flex;
+  height: calc(100vh - 160px); // 进一步增加减去的高度
+  max-height: 100%;
+  overflow: hidden;
+}
+
+// 左侧固定面板
+.left-fixed-panel {
+  width: 300px;
+  height: 100%;
+  background: #f5f5f5;
+  border-right: 2px solid #ddd;
+  padding: 15px;
+  overflow-y: auto;
+  flex-shrink: 0;
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #555;
+  }
+
+  .monitoring-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    background: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .button-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .random-display {
+      font-weight: bold;
+      color: #007bff;
+      font-size: 14px;
+      margin-left: 4px;
+    }
+  }
+
+  .state-section {
+    background: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    strong {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .state-value {
+      font-weight: bold;
+      color: #007bff;
+      margin-left: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+
+      &.small {
+        font-size: 11px;
+      }
+    }
+
+    &.compact {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+  }
+
+  .digital-output-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #ddd;
+
+    h3 {
+      margin-bottom: 10px;
+    }
+
+    .dropdown-menu {
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    .button-group {
+      margin-bottom: 0;
+    }
   }
 }
 
-.dropdown-menu {
-  width: 200px; 
-  max-width: 100%; 
+// 右侧可滑动区域
+.right-scrollable-area {
+  flex: 1;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #fafafa;
+}
+
+.scrollable-content {
+  display: flex;
+  gap: 15px;
+  padding: 15px 15px 25px 15px; // 增加底部padding
+  height: 100%;
+  min-width: min-content;
+}
+
+// 数据卡片
+.data-card {
+  width: 300px;
+  height: auto;
+  max-height: calc(100% - 50px); // 增加减去的值
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  padding-bottom: 15px; // 增加底部padding
+  flex-shrink: 0;
+  overflow-y: auto;
+  transition: box-shadow 0.2s;
+
+  &:hover .drag-handle {
+    background: #f0f0f0;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 8px;
+  }
+
+  .drag-handle {
+    cursor: move;
+    padding: 4px;
+    margin: -4px -4px 8px -4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .sub-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #007bff;
+    padding: 6px 0 2px 0;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 2px;
+
+    &:first-child {
+      padding-top: 0;
+    }
+  }
+
+  .data-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .data-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border-radius: 3px;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #e9ecef;
+    }
+
+    .label {
+      font-weight: 600;
+      color: #555;
+      min-width: 60px;
+      font-size: 12px;
+    }
+
+    .value {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #007bff;
+      font-weight: bold;
+    }
+  }
+
+}
+
+// CDK拖拽样式
+.cdk-drag-preview {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+  cursor: grabbing;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+  background: #e0e0e0;
+  border: 2px dashed #999;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.scrollable-content.cdk-drop-list-dragging .data-card:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 

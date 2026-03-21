@@ -6,6 +6,7 @@ import { RtdeCommunicatorNode } from './rtde-communicator.node';
 import { URCAP_ID, VENDOR_ID } from 'src/generated/contribution-constants';
 import { BackendService } from './backend.service';
 import { Subscription } from 'rxjs';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
     templateUrl: './rtde-communicator.component.html',
@@ -25,6 +26,9 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
     // Store data directly instead of using async pipe
     robotData: any = null;
     randomNumber: number | null = null;
+    dataRate: number = 0;
+    private messageCount: number = 0;
+    private dataRateInterval?: ReturnType<typeof setInterval>;
     
     private dataSubscription?: Subscription;
     private randomNumberSubscription?: Subscription;
@@ -34,6 +38,13 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
 
     protected outputs = ["DO 0", "DO 1", "DO 2", "DO 3", "DO 4", "DO 5", "DO 6", "DO 7"];
     protected output : string;
+
+    dataCards = [
+        { id: 'position', title: 'Position & Joints', type: 'position' },
+        { id: 'io', title: 'I/O Signals', type: 'io' },
+        { id: 'temperature', title: 'Temperature', type: 'temperature' },
+        { id: 'others', title: 'Dynamics & Voltage', type: 'others' },
+    ];
 
     constructor(
         protected readonly translateService: TranslateService,
@@ -66,9 +77,15 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
         // Subscribe to data stream
         this.dataSubscription = this.beService.data$.subscribe(data => {
             this.robotData = data;
-            console.log('Data updated:', data);
+            this.messageCount++;
             this.cd.detectChanges();
         });
+
+        this.dataRateInterval = setInterval(() => {
+            this.dataRate = this.messageCount;
+            this.messageCount = 0;
+            this.cd.detectChanges();
+        }, 1000);
 
         // Subscribe to random number stream
         this.randomNumberSubscription = this.beService.randomNumber$.subscribe(num => {
@@ -78,12 +95,14 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
     }
 
     ngOnDestroy(): void {
-        // Clean up subscriptions
         if (this.dataSubscription) {
             this.dataSubscription.unsubscribe();
         }
         if (this.randomNumberSubscription) {
             this.randomNumberSubscription.unsubscribe();
+        }
+        if (this.dataRateInterval) {
+            clearInterval(this.dataRateInterval);
         }
     }
 
@@ -134,12 +153,20 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
         this.beService.connect(this.backendWebsocketUrl);
         this.cd.detectChanges();
     }
-    
+
     stopMonitoring(): void {
         console.log('Stopping monitoring');
         this.isMonitoring = false;
         this.beService.disconnect();
         this.cd.detectChanges();
+    }
+
+    handleMonitoringToggle(): void {
+        if (this.isMonitoring) {
+            this.stopMonitoring();
+        } else {
+            this.startMonitoring();
+        }
     }
 
     getRandomNumber(): void {
@@ -167,5 +194,10 @@ export class RtdeCommunicatorComponent implements ApplicationPresenter, OnChange
             console.error('Digital output is undefined.')
         }
       }
+
+    // 拖拽处理
+    drop(event: CdkDragDrop<string[]>) {
+        moveItemInArray(this.dataCards, event.previousIndex, event.currentIndex);
+    }
 
 }

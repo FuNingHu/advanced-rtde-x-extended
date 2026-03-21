@@ -1,63 +1,347 @@
 @if (applicationNode) {
-    <div class="component">
-        <div class="section">
-            <h1>Robot State Monitor</h1>
+    <div class="rtde-container">
+        <!-- 左侧固定列 -->
+        <div class="left-fixed-panel">
             
-            <div style="margin-bottom: 20px;">
-                <ur-button (handleClick)="startMonitoring()" [disabled]="isMonitoring">Start Monitoring</ur-button>
-                <ur-button (handleClick)="stopMonitoring()" [disabled]="!isMonitoring">Stop Monitoring</ur-button>
-                <ur-button (handleClick)="getRandomNumber()">Get Random number</ur-button>
+            <div class="monitoring-control">
+                <ur-toggle-switch
+                    [toggled]="isMonitoring"
+                    [label]="isMonitoring ? 'Stop Monitoring' : 'Start Monitoring'"
+                    [labelPos]="'before'"
+                    (handleToggle)="handleMonitoringToggle()"
+                ></ur-toggle-switch>
+            </div>
+            
+            <div class="button-group">
+                <ur-button (handleClick)="getRandomNumber()">Get Random Number</ur-button>
+                @if (randomNumber !== null) {
+                    <span class="random-display">{{ randomNumber }}</span>
+                }
             </div>
 
-            @if (isMonitoring) {
-                @if (robotData) {
-                    <h3>Runtime State: {{ robotData.runtime_state }}</h3>
-                    <h3>Safety Status: {{ robotData.safety_status }}</h3>
-                    <div>
-                        <h3>Actual TCP Pose:</h3>
-                        <ul>
-                            <li>X: {{ robotData.actual_TCP_pose[0] | number:'1.4-4' }}</li>
-                            <li>Y: {{ robotData.actual_TCP_pose[1] | number:'1.4-4' }}</li>
-                            <li>Z: {{ robotData.actual_TCP_pose[2] | number:'1.4-4' }}</li>
-                            <li>RX: {{ robotData.actual_TCP_pose[3] | number:'1.4-4' }}</li>
-                            <li>RY: {{ robotData.actual_TCP_pose[4] | number:'1.4-4' }}</li>
-                            <li>RZ: {{ robotData.actual_TCP_pose[5] | number:'1.4-4' }}</li>
-                        </ul>
+            <div class="state-section">
+                <strong>Data Rate:</strong>
+                <span class="state-value">{{ dataRate }} msg/s</span>
+            </div>
+
+            <div class="state-section">
+                <strong>Robot Mode:</strong>
+                <span class="state-value">{{ robotData?.robot_mode }}</span>
+            </div>
+            <div class="state-section">
+                <strong>Runtime State:</strong>
+                <span class="state-value">{{ robotData?.runtime_state }}</span>
+            </div>
+            <div class="state-section">
+                <strong>Safety Mode:</strong>
+                <span class="state-value">{{ robotData?.safety_mode }}</span>
+            </div>
+            <div class="state-section">
+                <strong>Safety Status:</strong>
+                <span class="state-value">{{ robotData?.safety_status }}</span>
+            </div>
+            <div class="state-section">
+                <strong>Status Bits:</strong>
+                <span class="state-value">{{ robotData?.robot_status_bits }}</span>
+            </div>
+            <div class="state-section compact">
+                <strong>Joint Mode:</strong>
+                <span class="state-value small">{{ robotData?.joint_mode }}</span>
+            </div>
+
+            <!-- Digital Output Changer -->
+            <div class="digital-output-section">
+                <h3>Digital Output Changer</h3>
+                <div class="dropdown-menu">
+                    <ur-dropdown
+                        [options]="outputs"
+                        [label]="'Digital Output'"
+                        [placeholder]="'- Select -'"
+                        [selectedOption]="output"
+                        (selectionChange)="selectionChange($event)"
+                    ></ur-dropdown>
+                </div>
+                <div class="button-group">
+                    <ur-button (handleClick)="setDigitalOutput(1)">Set High[1]</ur-button>
+                    <ur-button (handleClick)="setDigitalOutput(0)">Set Low[0]</ur-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧可滑动区域 -->
+        <div class="right-scrollable-area">
+            <div class="scrollable-content" cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="drop($event)">
+                @for (card of dataCards; track card.id) {
+                    <div class="data-card" cdkDrag cdkDragLockAxis="x">
+                        <div class="drag-handle" cdkDragHandle>
+                            <h3>{{ card.title }}</h3>
+                        </div>
+                        
+                        @switch (card.type) {
+                            @case ('position') {
+                                <div class="data-list">
+                                    <div class="sub-title">Actual TCP Pose</div>
+                                    <div class="data-item">
+                                        <span class="label">X:</span>
+                                        <span class="value">{{ robotData?.actual_TCP_pose?.[0] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Y:</span>
+                                        <span class="value">{{ robotData?.actual_TCP_pose?.[1] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Z:</span>
+                                        <span class="value">{{ robotData?.actual_TCP_pose?.[2] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">RX:</span>
+                                        <span class="value">{{ robotData?.actual_TCP_pose?.[3] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">RY:</span>
+                                        <span class="value">{{ robotData?.actual_TCP_pose?.[4] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">RZ:</span>
+                                        <span class="value">{{ robotData?.actual_TCP_pose?.[5] | number:'1.4-4' }}</span>
+                                    </div>
+
+                                    <div class="sub-title">Actual Joint Positions (q)</div>
+                                    <div class="data-item">
+                                        <span class="label">J0:</span>
+                                        <span class="value">{{ robotData?.actual_q?.[0] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J1:</span>
+                                        <span class="value">{{ robotData?.actual_q?.[1] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J2:</span>
+                                        <span class="value">{{ robotData?.actual_q?.[2] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J3:</span>
+                                        <span class="value">{{ robotData?.actual_q?.[3] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J4:</span>
+                                        <span class="value">{{ robotData?.actual_q?.[4] | number:'1.4-4' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J5:</span>
+                                        <span class="value">{{ robotData?.actual_q?.[5] | number:'1.4-4' }}</span>
+                                    </div>
+                                </div>
+                            }
+                            @case ('io') {
+                                <div class="data-list">
+                                    <div class="sub-title">Digital I/O</div>
+                                    <div class="data-item">
+                                        <span class="label">DI Bits:</span>
+                                        <span class="value">{{ robotData?.actual_digital_input_bits }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">DO Bits:</span>
+                                        <span class="value">{{ robotData?.actual_digital_output_bits }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Conf DI:</span>
+                                        <span class="value">{{ robotData?.actual_configurable_digital_input_bits }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Conf DO:</span>
+                                        <span class="value">{{ robotData?.actual_configurable_digital_output_bits }}</span>
+                                    </div>
+
+                                    <div class="sub-title">Standard Analog</div>
+                                    <div class="data-item">
+                                        <span class="label">IO Types:</span>
+                                        <span class="value">{{ robotData?.analog_io_types }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">AI 0:</span>
+                                        <span class="value">{{ robotData?.standard_analog_input0 | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">AI 1:</span>
+                                        <span class="value">{{ robotData?.standard_analog_input1 | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">AO 0:</span>
+                                        <span class="value">{{ robotData?.standard_analog_output0 | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">AO 1:</span>
+                                        <span class="value">{{ robotData?.standard_analog_output1 | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">IO Curr:</span>
+                                        <span class="value">{{ robotData?.io_current | number:'1.3-3' }}</span>
+                                    </div>
+
+                                    <div class="sub-title">Tool I/O</div>
+                                    <div class="data-item">
+                                        <span class="label">AI Types:</span>
+                                        <span class="value">{{ robotData?.tool_analog_input_types }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Tool AI0:</span>
+                                        <span class="value">{{ robotData?.tool_analog_input0 | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Tool AI1:</span>
+                                        <span class="value">{{ robotData?.tool_analog_input1 | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Out V:</span>
+                                        <span class="value">{{ robotData?.tool_output_voltage }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Out Curr:</span>
+                                        <span class="value">{{ robotData?.tool_output_current | number:'1.3-3' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Out Mode:</span>
+                                        <span class="value">{{ robotData?.tool_output_mode }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">DO0 Mode:</span>
+                                        <span class="value">{{ robotData?.tool_digital_output0_mode }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">DO1 Mode:</span>
+                                        <span class="value">{{ robotData?.tool_digital_output1_mode }}</span>
+                                    </div>
+
+                                    <div class="sub-title">Registers</div>
+                                    <div class="data-item">
+                                        <span class="label">Int Reg 0:</span>
+                                        <span class="value">{{ robotData?.output_int_register_0 }}</span>
+                                    </div>
+                                </div>
+                            }
+                            @case ('temperature') {
+                                <div class="data-list">
+                                    <div class="sub-title">Joint Temperatures (°C)</div>
+                                    <div class="data-item">
+                                        <span class="label">J0:</span>
+                                        <span class="value">{{ robotData?.joint_temperatures?.[0] | number:'1.1-1' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J1:</span>
+                                        <span class="value">{{ robotData?.joint_temperatures?.[1] | number:'1.1-1' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J2:</span>
+                                        <span class="value">{{ robotData?.joint_temperatures?.[2] | number:'1.1-1' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J3:</span>
+                                        <span class="value">{{ robotData?.joint_temperatures?.[3] | number:'1.1-1' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J4:</span>
+                                        <span class="value">{{ robotData?.joint_temperatures?.[4] | number:'1.1-1' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">J5:</span>
+                                        <span class="value">{{ robotData?.joint_temperatures?.[5] | number:'1.1-1' }}</span>
+                                    </div>
+
+                                    <div class="sub-title">Tool Temperature (°C)</div>
+                                    <div class="data-item">
+                                        <span class="label">Tool:</span>
+                                        <span class="value">{{ robotData?.tool_temperature | number:'1.1-1' }}</span>
+                                    </div>
+                                </div>
+                            }
+                            @case ('others') {
+                                <div class="data-list">
+                                    <div class="sub-title">Time</div>
+                                    <div class="data-item">
+                                        <span class="label">Timestamp:</span>
+                                        <span class="value">{{ robotData?.timestamp | number:'1.2-2' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Exec Time:</span>
+                                        <span class="value">{{ robotData?.actual_execution_time | number:'1.4-4' }}</span>
+                                    </div>
+
+                                    <div class="sub-title">Joint Velocities (qd)</div>
+                                    @for (i of [0,1,2,3,4,5]; track i) {
+                                        <div class="data-item">
+                                            <span class="label">J{{ i }}:</span>
+                                            <span class="value">{{ robotData?.actual_qd?.[i] | number:'1.4-4' }}</span>
+                                        </div>
+                                    }
+
+                                    <div class="sub-title">Joint Currents</div>
+                                    @for (i of [0,1,2,3,4,5]; track i) {
+                                        <div class="data-item">
+                                            <span class="label">J{{ i }}:</span>
+                                            <span class="value">{{ robotData?.actual_current?.[i] | number:'1.4-4' }}</span>
+                                        </div>
+                                    }
+
+                                    <div class="sub-title">TCP Speed</div>
+                                    @for (item of [['X',0],['Y',1],['Z',2],['RX',3],['RY',4],['RZ',5]]; track item[0]) {
+                                        <div class="data-item">
+                                            <span class="label">{{ item[0] }}:</span>
+                                            <span class="value">{{ robotData?.actual_TCP_speed?.[item[1]] | number:'1.4-4' }}</span>
+                                        </div>
+                                    }
+
+                                    <div class="sub-title">TCP Force</div>
+                                    @for (item of [['X',0],['Y',1],['Z',2],['RX',3],['RY',4],['RZ',5]]; track item[0]) {
+                                        <div class="data-item">
+                                            <span class="label">{{ item[0] }}:</span>
+                                            <span class="value">{{ robotData?.actual_TCP_force?.[item[1]] | number:'1.4-4' }}</span>
+                                        </div>
+                                    }
+
+                                    <div class="sub-title">TCP Acceleration</div>
+                                    @for (item of [['X',0],['Y',1],['Z',2],['RX',3],['RY',4],['RZ',5]]; track item[0]) {
+                                        <div class="data-item">
+                                            <span class="label">{{ item[0] }}:</span>
+                                            <span class="value">{{ robotData?.actual_TCP_acceleration?.[item[1]] | number:'1.4-4' }}</span>
+                                        </div>
+                                    }
+
+                                    <div class="sub-title">TCP Offset</div>
+                                    @for (item of [['X',0],['Y',1],['Z',2],['RX',3],['RY',4],['RZ',5]]; track item[0]) {
+                                        <div class="data-item">
+                                            <span class="label">{{ item[0] }}:</span>
+                                            <span class="value">{{ robotData?.tcp_offset?.[item[1]] | number:'1.4-4' }}</span>
+                                        </div>
+                                    }
+
+                                    <div class="sub-title">Voltage</div>
+                                    <div class="data-item">
+                                        <span class="label">Main V:</span>
+                                        <span class="value">{{ robotData?.actual_main_voltage | number:'1.2-2' }}</span>
+                                    </div>
+                                    <div class="data-item">
+                                        <span class="label">Robot V:</span>
+                                        <span class="value">{{ robotData?.actual_robot_voltage | number:'1.2-2' }}</span>
+                                    </div>
+                                    @for (i of [0,1,2,3,4,5]; track i) {
+                                        <div class="data-item">
+                                            <span class="label">J{{ i }} V:</span>
+                                            <span class="value">{{ robotData?.actual_joint_voltage?.[i] | number:'1.2-2' }}</span>
+                                        </div>
+                                    }
+
+                                    <div class="sub-title">Force</div>
+                                    <div class="data-item">
+                                        <span class="label">TCP Force:</span>
+                                        <span class="value">{{ robotData?.tcp_force_scalar | number:'1.4-4' }}</span>
+                                    </div>
+                                </div>
+                            }
+                        }
                     </div>
-                    <div>
-                        <h3>Tool Analog Inputs:</h3>
-                        <ul>
-                            <li>AI0: {{ robotData.tool_analog_input0 | number:'1.3-3' }}</li>
-                            <li>AI1: {{ robotData.tool_analog_input1 | number:'1.3-3' }}</li>
-                        </ul>
-                    </div>
-                } @else {
-                    <p style="color: #FFA500; margin: 20px 0;">⏳ Connecting to RTDE and waiting for data...</p>
                 }
-            } @else {
-                <p style="color: #666; margin: 20px 0;">📊 Click "Start Monitoring" to view real-time robot data</p>
-            }
-            
-            @if (randomNumber !== null) {
-                <p><strong>Random Number:</strong> {{ randomNumber }}</p>
-            }
-        </div>
-        <div>
-            <h2>Digital Output Changer</h2>
-            <h3>Select an output to change:</h3>
-        </div>
-        <div class="dropdown-menu">
-            <ur-dropdown
-            [options]="outputs"
-            [label]="'Digital Output'"
-            [placeholder]="'- Select -'"
-            [selectedOption]="output"
-            (selectionChange)="selectionChange($event)"
-        ></ur-dropdown>
-        </div>
-        <div class="section">
-            <ur-button (handleClick)="setDigitalOutput(1)">Set High[1]</ur-button>
-            <ur-button (handleClick)="setDigitalOutput(0)">Set Low[0]</ur-button>
+            </div>
         </div>
     </div>
-  }
+}
