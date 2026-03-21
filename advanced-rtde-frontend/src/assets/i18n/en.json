@@ -2,7 +2,7 @@
   "application": {
     "nodes": {
       "urcaps-r-us-advanced-rtde-frontend-rtde-communicator": {
-        "title": "Rtde Communicator",
+        "title": "Robot State Monitor",
         "supportiveText": "Rtde Communicator - Supportive Text"
       }
     }

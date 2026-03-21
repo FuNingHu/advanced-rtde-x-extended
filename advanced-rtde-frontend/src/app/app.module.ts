@@ -8,6 +8,7 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import {MultiTranslateHttpLoader} from 'ngx-translate-multi-http-loader';
 import { PATH } from '../generated/contribution-constants';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 export const httpLoaderFactory = (http: HttpBackend) =>
     new MultiTranslateHttpLoader(http, [
@@ -24,6 +25,7 @@ export const httpLoaderFactory = (http: HttpBackend) =>
         BrowserAnimationsModule,
         UIAngularComponentsModule,
         HttpClientModule,
+        DragDropModule,
         TranslateModule.forRoot({
             loader: { provide: TranslateLoader, useFactory: httpLoaderFactory, deps: [HttpBackend] },
             useDefaultLang: false,

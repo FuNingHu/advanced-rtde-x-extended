@@ -43,7 +43,7 @@ export class BackendService {
     this.socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log('Received data from WebSocket:', data);
+        // console.log('Received data from WebSocket:', data); // 注释掉频繁输出
         this.dataSubject.next(data);
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);

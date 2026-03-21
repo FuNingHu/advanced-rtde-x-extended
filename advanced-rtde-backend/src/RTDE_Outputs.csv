@@ -13,13 +13,15 @@ joint_control_output,VECTOR6D
 actual_TCP_pose,VECTOR6D
 actual_TCP_speed,VECTOR6D
 actual_TCP_force,VECTOR6D
-,
+tcp_offset,VECTOR6D
 ,
 target_TCP_pose,VECTOR6D
 target_TCP_speed,VECTOR6D
 ,
 ,
 actual_digital_input_bits,UINT64
+actual_configurable_digital_input_bits,UINT64
+actual_TCP_acceleration,VECTOR6D
 joint_temperatures,VECTOR6D
 actual_execution_time,DOUBLE
 robot_mode,INT32
@@ -36,6 +38,7 @@ actual_robot_current,DOUBLE
 actual_joint_voltage,VECTOR6D
 ,
 actual_digital_output_bits,UINT64
+actual_configurable_digital_output_bits,UINT64
 runtime_state,UINT32
 elbow_position,VECTOR3D
 elbow_velocity,VECTOR3D
