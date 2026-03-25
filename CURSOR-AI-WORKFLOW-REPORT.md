@@ -81,22 +81,17 @@ Building draggable panels, resizable areas, or dynamic layouts in URCap requires
 
 Developers describe desired UI in natural language; Cursor generates complete implementations.
 
-**Capabilities:**
+#### Result Demo
 
-Cursor can generate drag-and-drop panel layouts that allow operators to customize their workspace:
+![Draggable Card UI Demo](./images/jog-card.gif)
 
-- **Draggable panel components** with Angular CDK `DragDropModule` integration
-- **Resizable split views** using CSS Grid or Flexbox with drag handles
-- **Persistent layout state** that saves operator preferences across sessions
-- **Responsive constraints** that respect PolyScope X's iframe boundaries (`calc(100vh - 160px)`)
 
 #### Advanced URCap Features Enabled
 
 
 | Feature                          | Description                                                                |
 | -------------------------------- | -------------------------------------------------------------------------- |
-| **Drag-and-drop reordering**     | Operators rearrange parameter cards, signal lists, or configuration blocks |
-| **Resizable panels**             | Adjustable sidebar/main area split with drag handles                       |
+| **Drag-and-drop reordering**     | Operators rearrange parameter cards, signal lists, or configuration blocks |                     |
 | **Dynamic form builder**         | Add/remove/reorder form fields at runtime                                  |
 | **Collapsible sections**         | Expand/collapse content areas to manage screen real estate                 |
 | **Interactive data tables**      | Sortable, filterable tables with inline editing                            |
@@ -114,25 +109,6 @@ Cursor can generate drag-and-drop panel layouts that allow operators to customiz
 | Integrate with PolyScope X height constraints | Trial and error                     | Instant — leverages existing Skill knowledge |
 
 
-| Feature | Description |
-|---------|-------------|
-| Drag-and-drop reordering | Rearrange cards, signal lists, config blocks |
-| Resizable panels | Adjustable sidebar/main split |
-| Dynamic form builder | Add/remove/reorder fields at runtime |
-| Collapsible sections | Expand/collapse content areas |
-| Interactive data tables | Sortable, filterable, inline editing |
-| Real-time visualization | Live charts for RTDE data |
-
-| Task | Manual | Cursor AI |
-|------|--------|-----------|
-| Drag-and-drop | 4–8 hours | ~15 min |
-| Resizable layout | 2–4 hours | ~10 min |
-| Layout persistence | 1–2 hours | ~5 min |
-| PolyScope X integration | Trial and error | Instant (Skill) |
-
-#### Result Demo
-
-![Draggable Card UI Demo](./images/jog-card.gif)
 
 ### Use Case 2 Summary
 
@@ -143,15 +119,3 @@ Cursor can generate drag-and-drop panel layouts that allow operators to customiz
 | Required Angular expertise | Advanced         | Basic (AI handles complexity) | **Lower barrier**     |
 | UI feature richness        | Static layouts   | Dynamic, interactive panels   | **Enhanced UX**       |
 | Iteration speed            | Hours per change | Minutes per change            | **Rapid prototyping** |
-
-
----
-
-## Conclusion
-
-| Use Case | Core Benefit |
-|----------|-------------|
-| **SDK Upgrade** | Tedious maintenance → fast, documented, repeatable workflow |
-| **Advanced UI** | Complex interactive features → accessible to all developers |
-
-Cursor AI shifts focus from **repetitive mechanics** to **creative problem-solving**.
